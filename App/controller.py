@@ -136,7 +136,7 @@ def getBooksByAuthor(control, authorname):
     authorinfo = model.getBooksByAuthor(control['model'], authorname)
     return authorinfo
 
-
+#r
 def getBooksByTag(control, tagname):
     """
     Retorna los libros que han sido marcados con
