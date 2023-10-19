@@ -59,7 +59,8 @@ def newCatalog():
                'authors': None,
                'tags': None,
                'tagIds': None,
-               'years': None}
+               'years': None,
+               'titles': None}
 
     """
     Esta lista contiene todo los libros encontrados
@@ -117,10 +118,13 @@ def newCatalog():
 
     """
     Este indice crea un map cuya llave es el titulo del libro
-    La columna 'titles' del archivo books.csv
+    La columna 'original_title' del archivo books.csv
     """
     # TODO lab 6, agregar el ADT map con newMap()
-    catalog['titles'] = None
+    catalog['titles'] = mp.newMap(20000,
+                                 maptype='PROBING',
+                                 loadfactor=0.5,
+                                 cmpfunction=compareTitles)
 
     return catalog
 
@@ -176,6 +180,7 @@ def addBook(catalog, book):
     for author in authors:
         addBookAuthor(catalog, author.strip(), book)
     addBookYear(catalog, book)
+    addBookTitle(catalog, book)
 
 
 def addBookYear(catalog, book):
@@ -264,14 +269,28 @@ def addBookTag(catalog, tag):
         if book:
             lt.addLast(tagbook['value']['books'], book['value'])
 
+def newTitle(title):
+    """
+    Esta funcion crea la estructura de libros asociados
+    a un titulo.
+    """
+    entry = {'title': "", "books": None}
+    entry['title'] = title
+    entry['books'] = lt.newList('SINGLE_LINKED', compareTitles)
+    return entry
 
 def addBookTitle(catalog, title):
     # TODO lab 6, agregar el libro al map de titulos
     """
-    Completar la descripcion de addBookTitle
+    Agrega una relación entre un libro y un titulo..
     """
-    pass
-
+    titles = catalog['titles']
+    titulo = title['original_title']
+    #bookid = title['goodreads_book_id']
+    #mp.put(titles, bookid, titulo)
+    t = newTitle(titulo)
+    mp.put(titles, titulo, t)
+    lt.addLast(t['books'], title)
 
 # ==============================
 # Funciones de consulta
@@ -312,9 +331,14 @@ def getBooksByYear(catalog, year):
 def getBookByTitle(catalog, title):
     # TODO lab 6, retornar el libro con el titulo dado
     """
-    Completar la descripcion de getBookByTitle
+    retornar el libro con el titulo dado
     """
-    pass
+    title = mp.get(catalog['titles'],title)
+    
+    if title:
+        return me.getValue(title)['books']
+    return None
+
 
 
 def booksSize(catalog):
@@ -339,11 +363,12 @@ def tagsSize(catalog):
 
 
 def titlesSize(catalog):
-    # TODO lab 6, retornar el numero de libros en el catalogo
+    # TODO lab 6, retornar el numero de titulos en el catalogo
     """
     Completar la descripcion de titlesSize
     """
-    pass
+    titulos = catalog['titles']
+    return mp.size(titulos)
 
 
 # ==============================
@@ -442,4 +467,10 @@ def compareTitles(title, book):
         int: retrona 0 si son iguales, 1 si el primero es mayor
         y -1 si el primero es menor
     """
-    pass
+    bookentry = me.getKey(book)
+    if (title == bookentry):
+        return 0
+    elif (title > bookentry):
+        return 1
+    else:
+        return -1
